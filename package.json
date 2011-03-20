@@ -1,0 +1,11 @@
+{ "name":        "connect_facebook",
+  "version":     "0.1.0",
+  "description": "Facebook session support for Connect",
+  "homepage":    "https://github.com/rsms/connect_facebook",
+  "author":      "Rasmus Andersson (http://rsms.me/)",
+  "main":        "connect_facebook.mv",
+  "keywords":    ["connect", "facebook", "move"],
+  "engines":     {"node": ">=0.3.0"},
+  "repository":  {"type": "git", "url": "http://github.com/rsms/connect_facebook.git"},
+  "dependencies":{ "move": ">=0.2.3", "connect": ">=1.1.1" }
+}

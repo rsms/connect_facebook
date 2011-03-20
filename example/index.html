@@ -1,0 +1,86 @@
+<!DOCTYPE HTML>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5/jquery.min.js"></script>
+    <script src="http://connect.facebook.net/en_US/all.js"></script>
+    <script src="http://movelang.org/move.js"></script>
+    <script type="text/move">
+
+FB.init { appId: 'YOUR_FACEBOOK_APP_ID', status: true, cookie: true }
+
+// Setup needed?
+if (FB._apiKey == 'YOUR_FACEBOOK_APP_ID') {
+  $('body').html '<h1>Setup</h1><ol>'+
+    '<li>Replace <tt>YOUR_FACEBOOK_APP_ID</tt> in <b>index.html</b> with your '+
+      'Facebook app ID</li>'+
+    '<li>Replace <tt>YOUR_FACEBOOK_APP_ID</tt> in <b>server.mv</b> with your '+
+      'Facebook app ID</li>'+
+    '<li>Replace <tt>YOUR_FACEBOOK_APP_SECRET</tt> in <b>server.mv</b> with '+
+      'your Facebook app secret</li>'+
+    '<li>(Re)start <tt>move server.mv</tt> and reload this site</li>'+
+    '</ol>'+
+    '<a href="https://www.facebook.com/developers/apps.php">'+
+      'Your Facebook apps &rarr;</a>'
+  throw new Error('App not configured')
+}
+
+onSessionChanged = ^(response) {
+  print 'onSessionChanged:', response.session
+  if (response.session) {
+    $('body').removeClass('fb-logged-out').addClass 'fb-logged-in'
+  } else {
+    $('body').removeClass('fb-logged-in').addClass 'fb-logged-out'
+  }
+}
+
+FB.Event.subscribe 'auth.sessionChange', onSessionChanged
+FB.getLoginStatus onSessionChanged
+
+$('button.login').click ^{
+  !FB.login ^{}, {perms: 'read_stream'}
+}
+
+$('button.test').click ^{
+  $('pre.message').text "Sending request..."
+  !$.get '/test', ^(response) {
+    $('pre.message').text "Response: "+response
+  }
+}
+
+// Running from file: or localhost will not work in most browsers
+if (document.location.protocol.indexOf('file') == 0) {
+  $('body').append '<h2>Warning</h2><p>You are accessing this example from a '+
+    'file. You need to access this example at http://yourhostname:3000/.'
+} else if (document.location.hostname == 'localhost') {
+  $('body').append '<b>Warning:</b> You are running this from "localhost". '+
+    'Some browsers will not save and/or pass cookies around. If you are '+
+    'having trouble, try running this from another hostname (e.g. john.local '+
+    'or your IP address)'
+}
+
+    </script>
+    <style type="text/css" media="screen">
+      body { font: 18px/1.5 sans-serif; padding:0; margin:2em; }
+      tt, pre { background: #f0f0f0; padding:0 0.2em; }
+      body.fb-logged-out .loading, body.fb-logged-in .loading { display:none; }
+      .not-loading, .logged-in, .logged-out { display:none; }
+      body.fb-logged-out .not-loading, body.fb-logged-in .not-loading,
+          body.fb-logged-out .logged-out, body.fb-logged-in .logged-in {
+        display:inline-block;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="fb-root"></div>
+    <p class="loading">Checking session with Facebook...</p>
+    <p class="logged-in">You are logged in to and connected with Facebook</p>
+    <p class="logged-out">
+      You are not logged in to Facebook or the app has not been authorized.
+      Please, <button class="login">Log in...</button>
+    </p>
+    <hr>
+    <button class="test not-loading">Ask the server to verify the session</button>
+    <pre class="message"></pre>
+  </body>
+</html>

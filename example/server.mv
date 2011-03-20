@@ -1,0 +1,16 @@
+import connect, connect_facebook = '../connect_facebook'
+
+connect()
+  .use(^(req, res, next) {
+    # Default to "/index.html"
+    if (req.url == '/') req.url = '/index.html'; next()
+  })
+  .use(connect['static'] __dirname)
+  .use(connect_facebook 'YOUR_FACEBOOK_APP_ID', 'YOUR_FACEBOOK_APP_SECRET')
+  .use(^(req, res, next) {
+    if (req.fb_session)
+      res.end Object.inspect req.fb_session
+    else
+      res.end 'No session or invalid session'
+  })
+  .listen 3000

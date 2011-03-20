@@ -1,0 +1,40 @@
+# Facebook support for Connect, enabling the use of Facebook user sessions
+import crypto, connect
+parse_qs = require('querystring').parse
+
+connect_facebook = ^(app_id, app_secret) {
+  if (!app_id) throw new TypeError('missing app_id argument')
+  if (!app_secret) throw new TypeError('missing app_secret argument')
+  if (typeof app_id != 'string')
+    throw new TypeError('invalid app_id -- did you forget to configure the'+
+                         ' connect_facebook middleware?')
+  ^(req, res, next) {
+    if (!req.cookies) {
+      # Parse cookies using the connect cookie parser, unless already parsed
+      err = null
+      connect.cookieParser() req, res, ^(e){ err = e }
+      if (err) return next err
+    }
+
+    # Acquire the Facebook app session cookie and proceed if found
+    fb_session = req.cookies["fbs_"+app_id]
+    if (!fb_session) return next()
+    fb_session = parse_qs fb_session
+
+    # Verify session signature
+    hash = crypto.createHash 'md5'
+    hash.update Object.keys(fb_session).sort().map(^(k){
+      (k == 'sig') ? "" : k+"="+fb_session[k]
+    }).join('')+app_secret
+    actual_signature = hash.digest 'hex'
+    expected_signature = fb_session.sig
+
+    # Assign req.fb_session if valid
+    if (actual_signature == expected_signature)
+      req.fb_session = fb_session
+
+    next()
+  }
+}
+
+module.exports = connect_facebook
